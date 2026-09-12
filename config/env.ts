@@ -5,8 +5,8 @@ const envSchema = z.object({
   PRIVY_APP_SECRET: z.string().min(1, "Privy App Secret is required"),
   BAKERY_PRIVATE_KEY: z.string().startsWith('0x', "Must be a valid hex string starting with 0x"),
   BAKERY_PUBLIC_ADDRESS: z.string().optional(),
-  AUTHORIZED_STAFF_EMAIL: z.string().email("Must be a valid staff email address").default("utkarsh.mudgal123si@gmail.com"),
-  NEXT_PUBLIC_APP_URL: z.string().url().default("http://localhost:3000"),
+  AUTHORIZED_STAFF_EMAIL: z.string().email("Must be a valid staff email address"),
+  NEXT_PUBLIC_APP_URL: z.string().url().optional(),
 });
 
 export const env = envSchema.parse({
