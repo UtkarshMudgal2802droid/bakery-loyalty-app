@@ -1,6 +1,10 @@
 'use client';
 
 import { useState } from 'react';
+import { usePrivy } from '@privy-io/react-auth';
+import { BentoCard } from '../../components/ui/BentoCard';
+import { Typography } from '../../components/ui/Typography';
+import { APP_CONFIG } from '../../config/app';
 
 export default function StaffPage() {
   const [email, setEmail] = useState('');
@@ -10,6 +14,8 @@ export default function StaffPage() {
   const [verifyLoading, setVerifyLoading] = useState(false);
   const [verifyResult, setVerifyResult] = useState<{ valid: boolean, message: string } | null>(null);
 
+  const { getAccessToken } = usePrivy();
+
   const handleAwardStamp = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
@@ -18,11 +24,14 @@ export default function StaffPage() {
     setVerifyResult(null);
     
     try {
-      // In a real app we'd authenticate the staff member first. 
-      // For demo purposes, we send the customer email to the backend.
+      const authToken = await getAccessToken();
+      
       const res = await fetch('/api/mint-stamp', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          ...(authToken ? { Authorization: `Bearer ${authToken}` } : {})
+        },
         body: JSON.stringify({ email })
       });
       
@@ -60,78 +69,87 @@ export default function StaffPage() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col items-center py-20 bg-zinc-950 font-sans p-6 text-zinc-300">
-      <main className="flex flex-col w-full max-w-lg bg-zinc-900 border border-white/10 p-8 rounded-xl shadow-2xl">
-        <h1 className="text-2xl font-semibold tracking-tight text-white mb-2">
-          Staff POS Portal
-        </h1>
-        <p className="text-sm text-zinc-400 mb-8">
-          Award stamps to customers and cryptographically verify their balances without trusting the customer's phone screen.
-        </p>
+    <div className="min-h-screen flex flex-col items-center justify-center py-20 p-6 md:p-12 relative overflow-hidden">
+      {/* Decorative ambient gradients */}
+      <div className="absolute top-[10%] left-[-10%] w-[30%] h-[30%] bg-[var(--color-copper)]/10 blur-[100px] rounded-full pointer-events-none" />
+      <div className="absolute bottom-[10%] right-[-10%] w-[30%] h-[30%] bg-[var(--color-emerald)]/10 blur-[100px] rounded-full pointer-events-none" />
 
-        <form onSubmit={handleAwardStamp} className="space-y-4">
-          <div>
-            <label className="block text-xs uppercase tracking-wider text-zinc-500 mb-2">Customer Email</label>
-            <input 
-              type="email" 
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder="customer@example.com"
-              required
-              className="w-full bg-black/50 border border-white/10 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-indigo-500 transition-colors"
-            />
+      <main className="flex flex-col w-full max-w-xl z-10 relative">
+        <BentoCard variant="panel">
+          <div className="mb-8 border-b border-white/5 pb-4">
+            <Typography variant="h2" className="!mb-1">Operator Console</Typography>
+            <Typography variant="caption">
+              Initiate and verify secure state transitions for loyalty protocols.
+            </Typography>
           </div>
-          <button 
-            type="submit"
-            disabled={loading}
-            className="w-full rounded-lg bg-indigo-600 px-4 py-3 font-medium text-white hover:bg-indigo-700 transition-colors disabled:opacity-50"
-          >
-            {loading ? 'Processing Transaction...' : 'Award Stamp (On-Chain / Signed)'}
-          </button>
-        </form>
 
-        {error && (
-          <div className="mt-6 p-4 bg-red-950/50 border border-red-500/50 rounded-lg text-red-400 text-sm">
-            {error}
-          </div>
-        )}
-
-        {stampData && (
-          <div className="mt-8 pt-8 border-t border-white/10 space-y-6">
-            <div className="flex flex-col items-center justify-center py-6 bg-zinc-950/50 rounded-xl border border-zinc-800">
-              <p className="text-sm text-zinc-400 mb-2">Updated Customer Balance</p>
-              <div className="text-4xl font-bold text-white mb-1">
-                {stampData.stamps} <span className="text-xl text-zinc-500">/ 10</span>
-              </div>
+          <form onSubmit={handleAwardStamp} className="space-y-6">
+            <div>
+              <Typography variant="label">Target Identifier (Email)</Typography>
+              <input 
+                type="email" 
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="identity@domain.com"
+                required
+                className="w-full bg-[var(--color-liquid-ink)]/50 border border-white/10 rounded-xl px-4 py-4 text-white focus:outline-none focus:border-[var(--color-copper)]/50 transition-colors shadow-inner"
+              />
             </div>
-
-            <div className="bg-black/50 p-4 rounded-lg border border-white/5 space-y-3">
-              <div>
-                <p className="text-xs uppercase tracking-wider text-zinc-500 mb-1">Server Cryptographic Proof</p>
-                <p className="text-xs font-mono break-all text-zinc-400">
-                  {stampData.signature}
-                </p>
-              </div>
-            </div>
-
             <button 
-              onClick={handleVerify}
-              disabled={verifyLoading}
-              className="w-full rounded-lg bg-zinc-800 border border-white/10 px-4 py-3 font-medium text-white hover:bg-zinc-700 transition-colors disabled:opacity-50"
+              type="submit"
+              disabled={loading}
+              className="w-full rounded-xl bg-[var(--color-copper)] px-4 py-4 font-medium text-white hover:bg-[var(--color-copper)]/90 transition-all duration-300 disabled:opacity-50 shadow-lg shadow-[var(--color-copper)]/20"
             >
-              {verifyLoading ? 'Verifying...' : 'Verify Cryptographic Signature'}
+              {loading ? 'Executing Protocol...' : 'Mint Cryptographic Attestation'}
             </button>
+          </form>
 
-            {verifyResult && (
-              <div className={`p-4 rounded-lg border ${verifyResult.valid ? 'bg-green-950/30 border-green-500/30 text-green-400' : 'bg-red-950/30 border-red-500/30 text-red-400'}`}>
-                <p className="text-sm font-medium mb-1">
-                  {verifyResult.valid ? '✅ Signature Verified' : '❌ Verification Failed'}
-                </p>
-                <p className="text-xs opacity-80">{verifyResult.message}</p>
+          {error && (
+            <div className="mt-6 p-4 bg-red-950/20 border border-red-500/20 rounded-xl text-red-400/90 text-sm font-medium">
+              Error: {error}
+            </div>
+          )}
+
+          {stampData && (
+            <div className="mt-10 pt-8 border-t border-white/5 space-y-6">
+              <div className="flex flex-col items-center justify-center py-8 bg-[var(--color-liquid-ink)]/80 rounded-2xl border border-white/5 shadow-inner">
+                <Typography variant="label" className="text-[var(--foreground)]">Synchronized Balance</Typography>
+                <div className="flex items-baseline gap-2 mt-2">
+                  <span className="text-5xl font-light text-white tracking-tighter">
+                    {stampData.stamps}
+                  </span>
+                  <span className="text-xl font-light text-white/30">/ {APP_CONFIG.ui.stampsRequired}</span>
+                </div>
               </div>
-            )}
-          </div>
-        )}
+
+              <BentoCard variant="card" className="!p-5 bg-black/30">
+                <Typography variant="label">Generated Cryptographic Signature</Typography>
+                <Typography variant="p" className="!mb-0 text-xs font-mono break-all opacity-60">
+                  {stampData.signature}
+                </Typography>
+              </BentoCard>
+
+              <button 
+                onClick={handleVerify}
+                disabled={verifyLoading}
+                className="w-full rounded-xl bg-white/5 border border-white/10 px-4 py-4 font-medium text-white hover:bg-white/10 hover:border-white/20 transition-all duration-300 disabled:opacity-50"
+              >
+                {verifyLoading ? 'Computing Verification...' : 'Verify Cryptographic Integrity'}
+              </button>
+
+              {verifyResult && (
+                <div className={`p-5 rounded-xl border backdrop-blur-md ${verifyResult.valid ? 'bg-green-950/20 border-green-500/20' : 'bg-red-950/20 border-red-500/20'}`}>
+                  <Typography variant="p" className={`!mb-1 font-medium ${verifyResult.valid ? 'text-green-400' : 'text-red-400'}`}>
+                    {verifyResult.valid ? 'State Synchronized: Cryptography Validated' : 'State Mismatch: Integrity Compromised'}
+                  </Typography>
+                  <Typography variant="caption" className="!mb-0 opacity-80">
+                    {verifyResult.message}
+                  </Typography>
+                </div>
+              )}
+            </div>
+          )}
+        </BentoCard>
       </main>
     </div>
   );

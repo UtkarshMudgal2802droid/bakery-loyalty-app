@@ -1,11 +1,11 @@
 'use client';
 
 import { PrivyProvider } from '@privy-io/react-auth';
-
+import { clientEnv } from '../config/client-env';
 export default function Providers({ children }: { children: React.ReactNode }) {
   return (
     <PrivyProvider
-      appId={process.env.NEXT_PUBLIC_PRIVY_APP_ID || ''}
+      appId={clientEnv.NEXT_PUBLIC_PRIVY_APP_ID}
       config={{
         loginMethods: ['email'],
         appearance: {

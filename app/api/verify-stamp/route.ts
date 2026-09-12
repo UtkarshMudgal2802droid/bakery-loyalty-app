@@ -1,7 +1,10 @@
 import { NextResponse } from 'next/server';
 import { verifyMessage } from 'viem';
 
-const bakeryPublicKey = (process.env.BAKERY_PUBLIC_ADDRESS || '0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266') as `0x${string}`;
+import { env } from '../../../config/env';
+import { APP_CONFIG } from '../../../config/app';
+
+const bakeryPublicKey = env.BAKERY_PUBLIC_ADDRESS as `0x${string}`;
 
 export async function POST(req: Request) {
   try {
@@ -22,12 +25,12 @@ export async function POST(req: Request) {
     if (valid) {
       return NextResponse.json({
         valid: true,
-        message: 'The signature matches the server cryptographic attestation for this customer.'
+        message: APP_CONFIG.ui.verificationSuccess
       });
     } else {
       return NextResponse.json({
         valid: false,
-        message: 'Invalid signature! Potential photocopy or tampering detected.'
+        message: APP_CONFIG.ui.verificationError
       });
     }
   } catch (error: any) {

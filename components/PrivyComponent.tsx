@@ -2,6 +2,9 @@
 
 import { usePrivy } from '@privy-io/react-auth';
 import { useState, useEffect } from 'react';
+import { BentoCard } from './ui/BentoCard';
+import { Typography } from './ui/Typography';
+import { APP_CONFIG } from '../config/app';
 
 export default function PrivyComponent() {
   const { ready, authenticated, user, login, logout, getAccessToken } = usePrivy();
@@ -36,71 +39,86 @@ export default function PrivyComponent() {
 
   if (!mounted || !ready) {
     return (
-      <div className="flex items-center justify-center w-full h-[200px] border border-white/10 rounded-xl bg-zinc-900/50">
-        <div className="w-6 h-6 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-      </div>
+      <BentoCard variant="panel" className="flex items-center justify-center w-full min-h-[250px]">
+        <div className="w-8 h-8 border-2 border-[var(--color-copper)]/30 border-t-[var(--color-copper)] rounded-full animate-spin" />
+      </BentoCard>
     );
   }
 
   return (
-    <div className="w-full border border-white/10 rounded-xl bg-zinc-900 p-6 text-zinc-300 shadow-2xl">
-      <h2 className="text-xl font-medium text-white mb-6">Bakery Loyalty Card</h2>
+    <BentoCard variant="panel" className="w-full">
+      <div className="flex items-center justify-between mb-8 pb-4 border-b border-white/5">
+        <Typography variant="h2" className="!mb-0">Cryptographic Identity</Typography>
+        {authenticated && (
+          <div className="flex items-center gap-2 px-3 py-1 bg-green-500/10 border border-green-500/20 rounded-full">
+            <div className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse" />
+            <span className="text-xs font-medium text-green-400">Authenticated</span>
+          </div>
+        )}
+      </div>
 
       {authenticated ? (
-        <div className="flex flex-col gap-6">
+        <div className="flex flex-col gap-8">
           
           {/* Identity & Wallet Info */}
-          <div className="bg-black/50 p-4 rounded-lg border border-white/5 space-y-3">
-            <div>
-              <p className="text-xs uppercase tracking-wider text-zinc-500 mb-1">User DID</p>
-              <p className="text-sm font-mono break-all text-white">{user?.id}</p>
-            </div>
+          <div className="grid grid-cols-1 gap-4">
+            <BentoCard variant="card" className="!p-5">
+              <Typography variant="label">Immutable Identifier (DID)</Typography>
+              <Typography variant="p" className="!mb-0 font-mono text-sm break-all">{user?.id}</Typography>
+            </BentoCard>
             
             {user?.wallet && (
-              <div>
-                <p className="text-xs uppercase tracking-wider text-zinc-500 mb-1">Embedded Wallet (Base Sepolia ready)</p>
-                <p className="text-sm font-mono break-all text-zinc-300">{user.wallet.address}</p>
-              </div>
+              <BentoCard variant="card" className="!p-5">
+                <Typography variant="label">Embedded Web3 Vault</Typography>
+                <Typography variant="p" className="!mb-0 font-mono text-sm break-all opacity-70">{user.wallet.address}</Typography>
+              </BentoCard>
             )}
           </div>
 
           {/* Loyalty Stamps Area */}
-          <div className="flex flex-col items-center justify-center py-6 bg-zinc-950/50 rounded-xl border border-zinc-800">
-            <p className="text-sm text-zinc-400 mb-2">Your Stamps</p>
-            <div className="text-5xl font-bold text-white mb-1">
-              {stamps !== null ? stamps : '-'} <span className="text-2xl text-zinc-500">/ 10</span>
+          <div className="flex flex-col items-center justify-center py-10 bg-[var(--color-liquid-ink)]/80 rounded-2xl border border-white/5 shadow-inner">
+            <Typography variant="label" className="text-[var(--foreground)]">Current Balance</Typography>
+            <div className="flex items-baseline gap-2 mt-2 mb-3">
+              <span className="text-6xl font-light text-white tracking-tighter">
+                {stamps !== null ? stamps : '-'}
+              </span>
+              <span className="text-2xl font-light text-white/30">/ {APP_CONFIG.ui.stampsRequired}</span>
             </div>
-            {stamps !== null && stamps >= 10 && (
-              <p className="text-green-400 text-sm font-medium mt-2">🎉 You earned a free cake!</p>
+            {stamps !== null && stamps >= APP_CONFIG.ui.stampsRequired && (
+              <div className="mt-4 px-4 py-2 bg-[var(--color-copper)]/10 border border-[var(--color-copper)]/20 rounded-lg">
+                <Typography variant="p" className="!mb-0 text-[var(--color-copper)] text-sm font-medium">
+                  Threshold Reached. Reward Available.
+                </Typography>
+              </div>
             )}
           </div>
 
-          <div className="pt-4 border-t border-white/10 text-center">
-             <p className="text-sm text-zinc-400 mb-4">
-               Show this page to the cashier to earn or redeem your stamps.
-             </p>
+          <div className="pt-6 mt-2 text-center">
+            <Typography variant="caption" className="mb-6 max-w-sm mx-auto">
+              Present this interface to a verified operator to initiate a secure cryptographic state update.
+            </Typography>
             <button 
               onClick={logout}
-              className="w-full mt-2 rounded-lg bg-zinc-800 px-4 py-3 text-sm font-medium text-white hover:bg-zinc-700 transition-colors"
+              className="w-full rounded-xl bg-white/5 border border-white/10 px-4 py-4 text-sm font-medium text-white hover:bg-white/10 hover:border-white/20 transition-all duration-300"
             >
-              Sign Out
+              Terminate Session
             </button>
           </div>
         </div>
       ) : (
-        <div className="flex flex-col gap-6">
-          <p className="text-sm text-zinc-400 text-center">
-            Email login and stamp earning, no installs, no seeds.
-          </p>
+        <div className="flex flex-col gap-8 py-4">
+          <Typography variant="p" className="text-center max-w-sm mx-auto">
+            Secure, passwordless authentication utilizing zero-knowledge proofs and embedded provisioning. No extensions required.
+          </Typography>
           
           <button 
             onClick={login}
-            className="w-full rounded-lg bg-white px-4 py-3 text-sm font-medium text-black hover:bg-zinc-200 transition-colors"
+            className="w-full rounded-xl bg-[var(--color-copper)] px-4 py-4 text-sm font-medium text-white hover:bg-[var(--color-copper)]/90 transition-all duration-300 shadow-lg shadow-[var(--color-copper)]/20"
           >
-            Get Started (Email & OTP)
+            Authenticate via Secure OTP
           </button>
         </div>
       )}
-    </div>
+    </BentoCard>
   );
 }
