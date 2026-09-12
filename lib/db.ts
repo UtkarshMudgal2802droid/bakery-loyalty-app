@@ -7,7 +7,9 @@ export interface UserData {
   lastStampedAt: number;
 }
 
-const DB_PATH = path.join(process.cwd(), 'data.json');
+const DB_PATH = process.env.VERCEL 
+  ? '/tmp/data.json' 
+  : path.join(process.cwd(), 'data.json');
 
 // Initialize database if it doesn't exist
 async function initDb() {
